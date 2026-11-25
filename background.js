@@ -46,6 +46,7 @@ async function run(link,mode='copy'){
     const downloadedFile=await downloadFile(copy.id,token,{signal:task.controller.signal});
     check();
     // Use a blob URL in the extension service worker; retain it until Chrome confirms download.
+    if(downloadedFile.blob.size>25*1024*1024)throw Error('File too large for POC download');
     const url=await blobToDataUrl(downloadedFile.blob);
     try{
       const downloadId=await chrome.downloads.download({url,filename:downloadedFile.name,saveAs:false,conflictAction:'uniquify'});
@@ -69,7 +70,7 @@ async function run(link,mode='copy'){
  }catch(e){
   if(task.cancelled){
     // Aborting the network request does not roll back an ongoing server-side copy.
-    await set({phase:'cancelled',note:'mayContinue'});
+    await set({phase:'cancelled',note:'mayContinue',id:copy?.id});
   }else{
     await set({phase:'error',reason:e.message==='cleanupFailed'?'cleanupFailed':makeReason(e),id:copy?.id});
   }
