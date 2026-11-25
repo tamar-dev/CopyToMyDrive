@@ -43,5 +43,38 @@
   },
   "other": {
     "message": "שימוש בקישור אחר"
+  },
+  "actions": {
+    "message": "פעולות בדרייב"
+  },
+  "download": {
+    "message": "הורדה למחשב"
+  },
+  "both": {
+    "message": "שמירה בדרייב והורדה"
+  },
+  "cancel": {
+    "message": "ביטול"
+  },
+  "close": {
+    "message": "סגירה"
+  },
+  "auth": {
+    "message": "מתחבר לחשבון Google…"
+  },
+  "downloadStep": {
+    "message": "מוריד את הקובץ…"
+  },
+  "cleanup": {
+    "message": "מנקה עותק זמני…"
+  },
+  "cancelWarning": {
+    "message": "הבקשה בוטלה בדפדפן. ייתכן שהשרת השלים את ההעתקה."
+  },
+  "cleanupFailed": {
+    "message": "ההורדה הסתיימה, אך העותק הזמני נשאר בדרייב."
+  },
+  "busyError": {
+    "message": "פעולה אחרת כבר מתבצעת."
   }
 }
