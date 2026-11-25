@@ -80,7 +80,7 @@ async function run(link,mode='copy'){
 chrome.contextMenus.onClicked.addListener(async info=>{
  if(!['copy','download','both'].includes(info.menuItemId))return;
  const link=info.linkUrl||info.pageUrl;
- try{parseLink(link);}catch{return;}
+ try{parseLink(link);}catch{await chrome.storage.session.set({copyState:{phase:'error',reason:'invalid'}});await chrome.windows.create({url:chrome.runtime.getURL('progress.html'),type:'popup',width:420,height:350});return;}
  const job=run(link,info.menuItemId);
  try{await chrome.windows.create({url:chrome.runtime.getURL('progress.html'),type:'popup',width:420,height:350});}catch(e){console.error(e);}
  await job;
