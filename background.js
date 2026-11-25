@@ -1,46 +1,95 @@
-import {parseLink,copyFile} from './drive.js';
-const t=(key,...args)=>chrome.i18n.getMessage(key,args);
-let busy=false;
+import {parseLink,copyFile,downloadFile,trashFile} from './drive.js';
+const t=k=>chrome.i18n.getMessage(k);
 const patterns=['https://drive.google.com/*','https://docs.google.com/*'];
+let current=null;
 chrome.runtime.onInstalled.addListener(()=>chrome.contextMenus.removeAll(()=>{
- chrome.contextMenus.create({id:'copy-link',title:t('copy'),contexts:['link'],targetUrlPatterns:patterns});
- chrome.contextMenus.create({id:'copy-page',title:t('copy'),contexts:['page'],documentUrlPatterns:patterns});
+ chrome.contextMenus.create({id:'actions',title:t('actions'),contexts:['link','page'],targetUrlPatterns:patterns,documentUrlPatterns:patterns});
+ for(const [id,key] of [['copy','copy'],['download','download'],['both','both']]){
+  chrome.contextMenus.create({id,parentId:'actions',title:t(key),contexts:['link','page']});
+ }
 }));
 async function publish(state){
  await chrome.storage.session.set({copyState:state});
  await chrome.action.setBadgeBackgroundColor({color:state.phase==='error'?'#b42318':state.phase==='success'?'#16803c':'#2563eb'});
- await chrome.action.setBadgeText({text:state.phase==='busy'?'…':state.phase==='success'?'✓':'!'});
- await chrome.action.setTitle({title:t(state.phase==='busy'?'working':state.phase==='success'?'success':'failed')});
+ await chrome.action.setBadgeText({text:state.phase==='busy'?'…':state.phase==='success'?'✓':state.phase==='error'?'!':''});
 }
-async function notify(state){
- try {await chrome.notifications.create('copy-result',{type:'basic',iconUrl:'icon.svg',title:t(state.phase==='success'?'success':'failed'),message:state.phase==='success'?state.name+' — '+t('open'):t(state.reason||'generic')});} catch {}
+function makeReason(e){
+ const message=String(e?.message||e);
+ if(/not permitted|cannot copy/i.test(message))return 'blocked';
+ if(/abort/i.test(message))return 'cancelled';
+ if(/auth|token|consent/i.test(message))return 'authError';
+ console.error('Drive action failed:',message);
+ return 'generic';
 }
-async function run(link){
- if(busy)return;
- busy=true;
- try{
- await publish({phase:'busy'});
+async function run(link,mode='copy'){
+ if(current)return {accepted:false};
  parseLink(link);
- const {token}=await chrome.identity.getAuthToken({interactive:true});
- if(!token)throw Error('No access token');
- const file=await copyFile(link,token);
- if(!file?.id)throw Error('Missing copy ID');
- const state={phase:'success',id:file.id,name:file.name||t('file')};
- await publish(state);await notify(state);
+ const task={cancelled:false,controller:new AbortController()};
+ current=task;
+ const set=async s=>{if(current===task)await publish({...s,mode});};
+ const check=()=>{if(task.cancelled)throw Error('Operation cancelled');};
+ let copy=null;
+ let downloaded=false;
+ try{
+  await set({phase:'busy',step:'auth'});
+  const {token}=await chrome.identity.getAuthToken({interactive:true});
+  if(!token)throw Error('Missing token');
+  check();await set({phase:'busy',step:'copy'});
+  // Each supported mode creates a private copy first; the source is never deleted.
+  copy=await copyFile(link,token,{signal:task.controller.signal});
+  if(!copy?.id)throw Error('Copy result missing file ID');
+  check();
+  if(mode!=='copy'){
+    await set({phase:'busy',step:'download'});
+    const downloadedFile=await downloadFile(copy.id,token,{signal:task.controller.signal});
+    check();
+    // Use a blob URL in the extension service worker; retain it until Chrome confirms download.
+    const url=URL.createObjectURL(downloadedFile.blob);
+    try{
+      const downloadId=await chrome.downloads.download({url,filename:downloadedFile.name,saveAs:false,conflictAction:'uniquify'});
+      await new Promise((resolve,reject)=>{
+        const listener=delta=>{
+          if(delta.id!==downloadId)return;
+          if(delta.state?.current==='complete'){chrome.downloads.onChanged.removeListener(listener);resolve();}
+          if(delta.state?.current==='interrupted'){chrome.downloads.onChanged.removeListener(listener);reject(Error('Download interrupted'));}
+        };
+        chrome.downloads.onChanged.addListener(listener);
+      });
+      downloaded=true;
+    }finally{URL.revokeObjectURL(url);}
+  }
+  check();
+  if(mode==='download'){
+    await set({phase:'busy',step:'cleanup'});
+    try{await trashFile(copy.id,token);copy=null;}catch(e){console.error('Temporary copy cleanup failed:',e);throw Error('cleanupFailed');}
+  }
+  await set({phase:'success',id:copy?.id,name:copy?.name,downloaded});
  }catch(e){
- const detail=String(e.message||e);
- const reason=/not permitted|cannot copy|copying.*disabled/i.test(detail)?'blocked':/auth|token|sign.in|consent/i.test(detail)?'authError':/unsupported|not a google|invalid url/i.test(detail)?'invalid':'generic';
- console.error('Copy failed:', detail);
- const state={phase:'error',reason};
- await publish(state);await notify(state);
- }finally{busy=false;}
+  if(task.cancelled){
+    // Aborting the network request does not roll back an ongoing server-side copy.
+    await set({phase:'cancelled',note:'mayContinue'});
+  }else{
+    await set({phase:'error',reason:e.message==='cleanupFailed'?'cleanupFailed':makeReason(e),id:copy?.id});
+  }
+ }finally{if(current===task)current=null;}
+ return {accepted:true};
 }
 chrome.contextMenus.onClicked.addListener(async info=>{
- if(!['copy-link','copy-page'].includes(info.menuItemId))return;
- if(busy){await chrome.windows.create({url:chrome.runtime.getURL('progress.html'),type:'popup',width:390,height:300});return;}
- const operation=run(info.linkUrl||info.pageUrl);
- try{await chrome.windows.create({url:chrome.runtime.getURL('progress.html'),type:'popup',width:390,height:300});}catch(e){console.error('Progress window:',e);}
- await operation;
+ if(!['copy','download','both'].includes(info.menuItemId))return;
+ const link=info.linkUrl||info.pageUrl;
+ const job=run(link,info.menuItemId);
+ try{await chrome.windows.create({url:chrome.runtime.getURL('progress.html'),type:'popup',width:420,height:350});}catch(e){console.error(e);}
+ await job;
 });
-chrome.runtime.onMessage.addListener((msg,sender,reply)=>{if(sender.id!==chrome.runtime.id||msg?.type!=='copy')return; if(busy){reply({accepted:false});return;}void run(msg.link);reply({accepted:true});});
-chrome.notifications.onClicked.addListener(async id=>{if(id!=='copy-result')return;const {copyState:s}=await chrome.storage.session.get('copyState');if(s?.phase==='success')await chrome.tabs.create({url:'https://drive.google.com/open?id='+encodeURIComponent(s.id)});await chrome.notifications.clear(id);});
+chrome.runtime.onMessage.addListener((msg,sender,respond)=>{
+ if(sender.id!==chrome.runtime.id)return;
+ if(msg?.type==='cancel'){
+  if(current){current.cancelled=true;current.controller.abort();respond({accepted:true});}
+  else respond({accepted:false});
+  return;
+ }
+ if(msg?.type==='start'){
+  if(current){respond({accepted:false});return;}
+  void run(msg.link,msg.mode).catch(console.error);respond({accepted:true});
+ }
+});
