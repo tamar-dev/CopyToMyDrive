@@ -1,0 +1,5 @@
+import {parseLink,copyFile} from './drive.js';
+const link=document.querySelector('#link'), button=document.querySelector('#copy'), status=document.querySelector('#status'), result=document.querySelector('#result');
+link.value=new URLSearchParams(location.search).get('url')||'';
+if(!link.value){const [tab]=await chrome.tabs.query({active:true,currentWindow:true});try{parseLink(tab.url);link.value=tab.url;}catch{}}
+button.onclick=async()=>{button.disabled=true;result.hidden=true;status.textContent='Connecting…';try{parseLink(link.value);const {token}=await chrome.identity.getAuthToken({interactive:true});if(!token)throw Error('No access token');status.textContent='Copying…';const file=await copyFile(link.value,token);result.href='https://drive.google.com/open?id='+encodeURIComponent(file.id);result.hidden=false;status.textContent=`Copied: ${file.name}`;}catch(e){status.textContent=e.message;}finally{button.disabled=false;}};
