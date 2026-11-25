@@ -45,7 +45,7 @@ async function run(link,mode='copy'){
     await set({phase:'busy',step:'downloadStep'});
     const downloadedFile=await downloadFile(copy.id,token,{signal:task.controller.signal});
     check();
-    // Use a blob URL in the extension service worker; retain it until Chrome confirms download.
+    // This experimental build buffers the download as a data URL (25 MB limit).
     if(downloadedFile.blob.size>25*1024*1024)throw Error('File too large for POC download');
     const url=await blobToDataUrl(downloadedFile.blob);
     try{
