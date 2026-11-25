@@ -43,5 +43,38 @@
   },
   "other": {
     "message": "Use another link"
+  },
+  "actions": {
+    "message": "Drive actions"
+  },
+  "download": {
+    "message": "Download to computer"
+  },
+  "both": {
+    "message": "Save to Drive and download"
+  },
+  "cancel": {
+    "message": "Cancel"
+  },
+  "close": {
+    "message": "Close"
+  },
+  "auth": {
+    "message": "Connecting to Google…"
+  },
+  "downloadStep": {
+    "message": "Downloading file…"
+  },
+  "cleanup": {
+    "message": "Cleaning up temporary copy…"
+  },
+  "cancelWarning": {
+    "message": "The browser request was cancelled. The server might still complete the copy."
+  },
+  "cleanupFailed": {
+    "message": "Download completed, but the temporary copy was not removed from Drive."
+  },
+  "busyError": {
+    "message": "Another operation is in progress."
   }
 }
