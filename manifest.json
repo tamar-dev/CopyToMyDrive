@@ -1,12 +1,14 @@
 {
   "manifest_version": 3,
-  "name": "Copy to My Drive",
-  "version": "0.1.0",
-  "description": "Copy shared Google Drive files to your own Drive.",
+  "name": "__MSG_appName__",
+  "version": "0.2.0",
+  "description": "__MSG_description__",
   "permissions": [
     "identity",
     "contextMenus",
-    "activeTab"
+    "activeTab",
+    "storage",
+    "notifications"
   ],
   "host_permissions": [
     "https://www.googleapis.com/*",
@@ -24,5 +26,6 @@
   },
   "action": {
     "default_popup": "popup.html"
-  }
+  },
+  "default_locale": "en"
 }
