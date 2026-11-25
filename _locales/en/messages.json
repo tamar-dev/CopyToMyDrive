@@ -1,0 +1,47 @@
+{
+  "appName": {
+    "message": "Copy to My Drive"
+  },
+  "description": {
+    "message": "Save a real copy of shared Drive files."
+  },
+  "copy": {
+    "message": "Save a copy to my Drive"
+  },
+  "working": {
+    "message": "Saving a copy to your Drive…"
+  },
+  "success": {
+    "message": "Copy saved successfully"
+  },
+  "failed": {
+    "message": "Could not save the copy"
+  },
+  "open": {
+    "message": "Open your copy"
+  },
+  "file": {
+    "message": "File"
+  },
+  "blocked": {
+    "message": "The owner does not allow copying."
+  },
+  "authError": {
+    "message": "Sign in to Google and try again."
+  },
+  "invalid": {
+    "message": "Choose a valid Google Drive file link."
+  },
+  "generic": {
+    "message": "Could not complete the action. Please try again."
+  },
+  "current": {
+    "message": "Google Drive file on this page"
+  },
+  "paste": {
+    "message": "Paste a Google Drive file link"
+  },
+  "other": {
+    "message": "Use another link"
+  }
+}
