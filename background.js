@@ -30,10 +30,17 @@ async function run(link){
  }catch(e){
  const detail=String(e.message||e);
  const reason=/not permitted|cannot copy|copying.*disabled/i.test(detail)?'blocked':/auth|token|sign.in|consent/i.test(detail)?'authError':/unsupported|not a google|invalid url/i.test(detail)?'invalid':'generic';
+ console.error('Copy failed:', detail);
  const state={phase:'error',reason};
  await publish(state);await notify(state);
  }finally{busy=false;}
 }
-chrome.contextMenus.onClicked.addListener(info=>{if(['copy-link','copy-page'].includes(info.menuItemId))void run(info.linkUrl||info.pageUrl);});
+chrome.contextMenus.onClicked.addListener(async info=>{
+ if(!['copy-link','copy-page'].includes(info.menuItemId))return;
+ if(busy){await chrome.windows.create({url:chrome.runtime.getURL('progress.html'),type:'popup',width:390,height:300});return;}
+ const operation=run(info.linkUrl||info.pageUrl);
+ try{await chrome.windows.create({url:chrome.runtime.getURL('progress.html'),type:'popup',width:390,height:300});}catch(e){console.error('Progress window:',e);}
+ await operation;
+});
 chrome.runtime.onMessage.addListener((msg,sender,reply)=>{if(sender.id!==chrome.runtime.id||msg?.type!=='copy')return; if(busy){reply({accepted:false});return;}void run(msg.link);reply({accepted:true});});
 chrome.notifications.onClicked.addListener(async id=>{if(id!=='copy-result')return;const {copyState:s}=await chrome.storage.session.get('copyState');if(s?.phase==='success')await chrome.tabs.create({url:'https://drive.google.com/open?id='+encodeURIComponent(s.id)});await chrome.notifications.clear(id);});
