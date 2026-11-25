@@ -48,7 +48,7 @@ async function run(link,mode='copy'){
     // This experimental build buffers the download as a data URL (25 MB limit).
     if(downloadedFile.blob.size>25*1024*1024)throw Error('File too large for POC download');
     const url=await blobToDataUrl(downloadedFile.blob);
-    try{
+    {
       const downloadId=await chrome.downloads.download({url,filename:downloadedFile.name,saveAs:false,conflictAction:'uniquify'});
       await new Promise((resolve,reject)=>{
         const listener=delta=>{
@@ -59,7 +59,7 @@ async function run(link,mode='copy'){
         chrome.downloads.onChanged.addListener(listener);
       });
       downloaded=true;
-    }finally{}
+    }
   }
   check();
   if(mode==='download'){
