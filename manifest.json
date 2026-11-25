@@ -1,0 +1,27 @@
+{
+  "manifest_version": 3,
+  "name": "Copy to My Drive",
+  "version": "0.1.0",
+  "description": "Copy shared Google Drive files to your own Drive.",
+  "permissions": [
+    "identity",
+    "contextMenus",
+    "activeTab"
+  ],
+  "host_permissions": [
+    "https://www.googleapis.com/*"
+  ],
+  "oauth2": {
+    "client_id": "REPLACE_ME.apps.googleusercontent.com",
+    "scopes": [
+      "https://www.googleapis.com/auth/drive"
+    ]
+  },
+  "background": {
+    "service_worker": "background.js",
+    "type": "module"
+  },
+  "action": {
+    "default_popup": "popup.html"
+  }
+}
