@@ -12,7 +12,7 @@ export async function copyFile(link, token, request=fetch) {
  const headers={Authorization:`Bearer ${token}`};
  if(key) headers['X-Goog-Drive-Resource-Keys']=`${id}/${key}`;
  const base=`https://www.googleapis.com/drive/v3/files/${id}`;
- async function call(url,init){ const r=await request(url,init); const data=await r.json(); if(!r.ok) throw Error(data.error?.message || `HTTP ${r.status}`); return data; }
+ async function call(url,init){ const r=await request(url,init); const raw=await r.text(); let data; try { data=JSON.parse(raw); } catch { const title=raw.match(/<title[^>]*>([\s\S]*?)<\/title>/i)?.[1]?.trim(); throw Error(`Drive API returned non-JSON: HTTP ${r.status}; Content-Type: ${r.headers.get('content-type') || 'unknown'}; Page: ${title || raw.slice(0,180)}`); } if(!r.ok) throw Error(data.error?.message || `HTTP ${r.status}`); return data; }
  const meta=await call(base+'?fields=name,mimeType,capabilities(canCopy)&supportsAllDrives=true',{headers});
  if(['application/vnd.google-apps.folder','application/vnd.google-apps.shortcut'].includes(meta.mimeType)) throw Error('Folders and shortcuts are not supported.');
  if(!meta.capabilities?.canCopy) throw Error('Copying is not permitted by the owner.');
