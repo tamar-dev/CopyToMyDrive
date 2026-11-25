@@ -2,6 +2,8 @@ import {parseLink,copyFile,downloadFile,trashFile} from './drive.js';
 const t=k=>chrome.i18n.getMessage(k);
 const patterns=['https://drive.google.com/*','https://docs.google.com/*'];
 let current=null;
+async function blobToDataUrl(blob){const bytes=new Uint8Array(await blob.arrayBuffer());let out='';for(let i=0;i<bytes.length;i+=8192)out+=String.fromCharCode(...bytes.subarray(i,i+8192));return 'data:application/octet-stream;base64,'+btoa(out);}
+
 chrome.runtime.onInstalled.addListener(()=>chrome.contextMenus.removeAll(()=>{
  chrome.contextMenus.create({id:'actions',title:t('actions'),contexts:['link','page'],targetUrlPatterns:patterns,documentUrlPatterns:patterns});
  for(const [id,key] of [['copy','copy'],['download','download'],['both','both']]){
@@ -40,11 +42,11 @@ async function run(link,mode='copy'){
   if(!copy?.id)throw Error('Copy result missing file ID');
   check();
   if(mode!=='copy'){
-    await set({phase:'busy',step:'download'});
+    await set({phase:'busy',step:'downloadStep'});
     const downloadedFile=await downloadFile(copy.id,token,{signal:task.controller.signal});
     check();
     // Use a blob URL in the extension service worker; retain it until Chrome confirms download.
-    const url=URL.createObjectURL(downloadedFile.blob);
+    const url=await blobToDataUrl(downloadedFile.blob);
     try{
       const downloadId=await chrome.downloads.download({url,filename:downloadedFile.name,saveAs:false,conflictAction:'uniquify'});
       await new Promise((resolve,reject)=>{
@@ -56,7 +58,7 @@ async function run(link,mode='copy'){
         chrome.downloads.onChanged.addListener(listener);
       });
       downloaded=true;
-    }finally{URL.revokeObjectURL(url);}
+    }finally{}
   }
   check();
   if(mode==='download'){
