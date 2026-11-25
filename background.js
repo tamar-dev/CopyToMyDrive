@@ -5,7 +5,7 @@ let current=null;
 async function blobToDataUrl(blob){const bytes=new Uint8Array(await blob.arrayBuffer());let out='';for(let i=0;i<bytes.length;i+=8192)out+=String.fromCharCode(...bytes.subarray(i,i+8192));return 'data:application/octet-stream;base64,'+btoa(out);}
 
 chrome.runtime.onInstalled.addListener(()=>chrome.contextMenus.removeAll(()=>{
- chrome.contextMenus.create({id:'actions',title:t('actions'),contexts:['link','page'],targetUrlPatterns:patterns,documentUrlPatterns:patterns});
+ chrome.contextMenus.create({id:'actions',title:t('actions'),contexts:['link','page']});
  for(const [id,key] of [['copy','copy'],['download','download'],['both','both']]){
   chrome.contextMenus.create({id,parentId:'actions',title:t(key),contexts:['link','page']});
  }
@@ -80,6 +80,7 @@ async function run(link,mode='copy'){
 chrome.contextMenus.onClicked.addListener(async info=>{
  if(!['copy','download','both'].includes(info.menuItemId))return;
  const link=info.linkUrl||info.pageUrl;
+ try{parseLink(link);}catch{return;}
  const job=run(link,info.menuItemId);
  try{await chrome.windows.create({url:chrome.runtime.getURL('progress.html'),type:'popup',width:420,height:350});}catch(e){console.error(e);}
  await job;
