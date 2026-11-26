@@ -87,7 +87,7 @@ async function run(input=null,interactive=false,cancel=false){
     if(!job.downloadId){
      job.stage='fetching';await save(job);
      await publish({phase:'busy',step:'downloadStep',mode:job.mode,name:job.name});
-     const downloaded=await downloadFile(op.file.id,job.token,{signal:job.controller.signal,onProgress:(loaded,total)=>{if(!job.cancelled)void publish({phase:'busy',step:'downloadStep',mode:job.mode,name:job.name,loaded,total}).catch(console.error);}});
+     const downloaded=await downloadFile(op.file.id,job.token,{operationId:job.id,signal:job.controller.signal,onProgress:(loaded,total)=>{if(!job.cancelled)void publish({phase:'busy',step:'downloadStep',mode:job.mode,name:job.name,loaded,total}).catch(console.error);}});
      if(job.cancelled)throw Error('cancelled');
      const url=await blobToDataUrl(downloaded.blob);
      if(job.cancelled)throw Error('cancelled');
