@@ -68,13 +68,40 @@
   "cleanup": {
     "message": "Cleaning up temporary copy…"
   },
-  "cancelWarning": {
-    "message": "The browser request was cancelled. The server might still complete the copy."
-  },
   "cleanupFailed": {
     "message": "Download completed, but the temporary copy was not removed from Drive."
   },
   "busyError": {
     "message": "Another operation is in progress."
+  },
+  "downloadSuccess": {
+    "message": "Download completed"
+  },
+  "bothSuccess": {
+    "message": "Saved to Drive and downloaded"
+  },
+  "cancelSuccess": {
+    "message": "Operation cancelled and temporary copy removed"
+  },
+  "cancelling": {
+    "message": "Cancelling and cleaning up…"
+  },
+  "recovering": {
+    "message": "Checking the operation with Google Drive…"
+  },
+  "resume": {
+    "message": "Check again"
+  },
+  "rightClickHint": {
+    "message": "Right-click a Google Drive file link to copy or download it."
+  },
+  "progressLabel": {
+    "message": "Operation progress"
+  },
+  "tooLarge": {
+    "message": "This version supports downloads up to 25 MB. The temporary copy was removed."
+  },
+  "downloadInterrupted": {
+    "message": "Download interrupted. The temporary copy was removed."
   }
 }
