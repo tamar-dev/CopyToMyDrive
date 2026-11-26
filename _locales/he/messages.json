@@ -103,5 +103,26 @@
   },
   "downloadInterrupted": {
     "message": "ההורדה נקטעה. העותק הזמני הוסר."
+  },
+  "copyFolder": {
+    "message": "העתקת תיקייה לדרייב שלי"
+  },
+  "currentFolder": {
+    "message": "תיקיית Google Drive בעמוד הנוכחי"
+  },
+  "folderScanning": {
+    "message": "סורק את תוכן התיקייה…"
+  },
+  "folderCopying": {
+    "message": "מעתיק את התיקייה…"
+  },
+  "folderLimit": {
+    "message": "גרסה זו תומכת בתיקיות עד 200 פריטים ובעומק של 16 תתי־תיקיות."
+  },
+  "folderUnsupported": {
+    "message": "התיקייה כוללת קיצור דרך או מבנה שאינו נתמך. לא נוצרו עותקים."
+  },
+  "folderCopyOnly": {
+    "message": "בשלב זה ניתן להעתיק תיקיות לדרייב בלבד."
   }
 }
