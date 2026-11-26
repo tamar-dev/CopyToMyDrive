@@ -1,0 +1,17 @@
+name: Drive extension CI
+on:
+  push:
+    branches: [feature/drive-actions]
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm test
+      - run: node --check background.js && node --check progress.js && node --check popup.js
