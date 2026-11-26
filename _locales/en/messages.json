@@ -43,5 +43,86 @@
   },
   "other": {
     "message": "Use another link"
+  },
+  "actions": {
+    "message": "Drive actions"
+  },
+  "download": {
+    "message": "Download to computer"
+  },
+  "both": {
+    "message": "Save to Drive and download"
+  },
+  "cancel": {
+    "message": "Cancel"
+  },
+  "close": {
+    "message": "Close"
+  },
+  "auth": {
+    "message": "Connecting to Google…"
+  },
+  "downloadStep": {
+    "message": "Downloading file…"
+  },
+  "cleanup": {
+    "message": "Cleaning up temporary copy…"
+  },
+  "cleanupFailed": {
+    "message": "Download completed, but the temporary copy was not removed from Drive."
+  },
+  "busyError": {
+    "message": "Another operation is in progress."
+  },
+  "downloadSuccess": {
+    "message": "Download completed"
+  },
+  "bothSuccess": {
+    "message": "Saved to Drive and downloaded"
+  },
+  "cancelSuccess": {
+    "message": "Operation cancelled and temporary copy removed"
+  },
+  "cancelling": {
+    "message": "Cancelling and cleaning up…"
+  },
+  "recovering": {
+    "message": "Checking the operation with Google Drive…"
+  },
+  "resume": {
+    "message": "Check again"
+  },
+  "rightClickHint": {
+    "message": "Right-click a Google Drive file link to copy or download it."
+  },
+  "progressLabel": {
+    "message": "Operation progress"
+  },
+  "tooLarge": {
+    "message": "This version supports downloads up to 25 MB. The temporary copy was removed."
+  },
+  "downloadInterrupted": {
+    "message": "Download interrupted. The temporary copy was removed."
+  },
+  "copyFolder": {
+    "message": "Copy folder to my Drive"
+  },
+  "currentFolder": {
+    "message": "Google Drive folder on this page"
+  },
+  "folderScanning": {
+    "message": "Scanning folder contents…"
+  },
+  "folderCopying": {
+    "message": "Copying folder…"
+  },
+  "folderLimit": {
+    "message": "This version supports up to 200 items and 16 nested folder levels."
+  },
+  "folderUnsupported": {
+    "message": "The folder contains a shortcut or unsupported structure. No copies were created."
+  },
+  "folderCopyOnly": {
+    "message": "Folders can currently be copied to Drive only."
   }
 }

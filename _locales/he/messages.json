@@ -43,5 +43,86 @@
   },
   "other": {
     "message": "שימוש בקישור אחר"
+  },
+  "actions": {
+    "message": "פעולות בדרייב"
+  },
+  "download": {
+    "message": "הורדה למחשב"
+  },
+  "both": {
+    "message": "שמירה בדרייב והורדה"
+  },
+  "cancel": {
+    "message": "ביטול"
+  },
+  "close": {
+    "message": "סגירה"
+  },
+  "auth": {
+    "message": "מתחבר לחשבון Google…"
+  },
+  "downloadStep": {
+    "message": "מוריד את הקובץ…"
+  },
+  "cleanup": {
+    "message": "מנקה עותק זמני…"
+  },
+  "cleanupFailed": {
+    "message": "ההורדה הסתיימה, אך העותק הזמני נשאר בדרייב."
+  },
+  "busyError": {
+    "message": "פעולה אחרת כבר מתבצעת."
+  },
+  "downloadSuccess": {
+    "message": "ההורדה הסתיימה בהצלחה"
+  },
+  "bothSuccess": {
+    "message": "הקובץ נשמר בדרייב והורד בהצלחה"
+  },
+  "cancelSuccess": {
+    "message": "הפעולה בוטלה והניקוי הושלם"
+  },
+  "cancelling": {
+    "message": "מבטל את הפעולה ומנקה עותקים…"
+  },
+  "recovering": {
+    "message": "בודק את מצב הפעולה מול Google Drive…"
+  },
+  "resume": {
+    "message": "בדיקה חוזרת"
+  },
+  "rightClickHint": {
+    "message": "להעתקה או להורדה, לחצו לחיצה ימנית על קישור לקובץ בדרייב."
+  },
+  "progressLabel": {
+    "message": "התקדמות הפעולה"
+  },
+  "tooLarge": {
+    "message": "גרסה זו תומכת בהורדות עד 25MB. העותק הזמני הוסר."
+  },
+  "downloadInterrupted": {
+    "message": "ההורדה נקטעה. העותק הזמני הוסר."
+  },
+  "copyFolder": {
+    "message": "העתקת תיקייה לדרייב שלי"
+  },
+  "currentFolder": {
+    "message": "תיקיית Google Drive בעמוד הנוכחי"
+  },
+  "folderScanning": {
+    "message": "סורק את תוכן התיקייה…"
+  },
+  "folderCopying": {
+    "message": "מעתיק את התיקייה…"
+  },
+  "folderLimit": {
+    "message": "גרסה זו תומכת בתיקיות עד 200 פריטים ובעומק של 16 תתי־תיקיות."
+  },
+  "folderUnsupported": {
+    "message": "התיקייה כוללת קיצור דרך או מבנה שאינו נתמך. לא נוצרו עותקים."
+  },
+  "folderCopyOnly": {
+    "message": "בשלב זה ניתן להעתיק תיקיות לדרייב בלבד."
   }
 }
