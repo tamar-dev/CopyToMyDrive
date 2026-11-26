@@ -29,7 +29,7 @@ test('operation identity and mode are sent to the operation API',async()=>{
 });
 test('download reports bytes and preserves filename',async()=>{
  const progress=[];
- const result=await downloadFile('abc','token',{onProgress:(...args)=>progress.push(args),request:async()=>new Response(new Uint8Array([1,2,3]),{headers:{'X-Download-Name':'test.bin','Content-Length':'3'}})});
+ const result=await downloadFile('abc','token',{onProgress:(...args)=>progress.push(args),operationId:'op-id',request:async(_url,init)=>{assert.deepEqual(JSON.parse(init.body),{fileId:'abc',operationId:'op-id'});return new Response(new Uint8Array([1,2,3]),{headers:{'X-Download-Name':'test.bin','X-Download-Size':'3'}});}});
  assert.equal(result.name,'test.bin');assert.equal(result.blob.size,3);assert.deepEqual(progress,[[3,3]]);
 });
 test('reject download larger than advertised cap before buffering',async()=>{
