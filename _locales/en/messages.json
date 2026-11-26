@@ -103,5 +103,26 @@
   },
   "downloadInterrupted": {
     "message": "Download interrupted. The temporary copy was removed."
+  },
+  "copyFolder": {
+    "message": "Copy folder to my Drive"
+  },
+  "currentFolder": {
+    "message": "Google Drive folder on this page"
+  },
+  "folderScanning": {
+    "message": "Scanning folder contents…"
+  },
+  "folderCopying": {
+    "message": "Copying folder…"
+  },
+  "folderLimit": {
+    "message": "This version supports up to 200 items and 16 nested folder levels."
+  },
+  "folderUnsupported": {
+    "message": "The folder contains a shortcut or unsupported structure. No copies were created."
+  },
+  "folderCopyOnly": {
+    "message": "Folders can currently be copied to Drive only."
   }
 }
