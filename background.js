@@ -1,7 +1,8 @@
-import {parseLink,operation,downloadFile} from './drive.js';
+import {parseLink,isFolderLink,operation,folderOperation,downloadFile} from './drive.js';
 const t=k=>chrome.i18n.getMessage(k);
 const modes=['copy','download','both'];
 const patterns=['https://drive.google.com/file/d/*','https://drive.google.com/open*','https://docs.google.com/document/d/*','https://docs.google.com/spreadsheets/d/*','https://docs.google.com/presentation/d/*','https://docs.google.com/forms/d/*'];
+const folderPatterns=['https://drive.google.com/drive/folders/*','https://drive.google.com/drive/u/*/folders/*'];
 const alarm='drive-operation-recovery';
 let current=null;
 const sleep=ms=>new Promise(resolve=>setTimeout(resolve,ms));
@@ -21,6 +22,7 @@ chrome.runtime.onInstalled.addListener(()=>chrome.contextMenus.removeAll(()=>{
   const parentId='actions-'+context;
   chrome.contextMenus.create({id:parentId,title:t('actions'),contexts:[context],...filter});
   for(const mode of modes)chrome.contextMenus.create({id:context+'-'+mode,parentId,title:t(mode),contexts:[context],...filter});
+  chrome.contextMenus.create({id:context+'-folder',title:t('copyFolder'),contexts:[context],...(context==='link'?{targetUrlPatterns:folderPatterns}:{documentUrlPatterns:folderPatterns})});
  }
 }));
 async function blobToDataUrl(blob){
@@ -58,17 +60,34 @@ async function run(input=null,interactive=false,cancel=false){
  try{
   const existing=await getSaved();
   if(existing)Object.assign(job,existing,{cancelled:cancel||existing.cancelled||job.cancelled});
-  else if(input){parseLink(input.link);Object.assign(job,{id:crypto.randomUUID(),link:input.link,mode:input.mode});}
+  else if(input){if(!isFolderLink(input.link))parseLink(input.link);Object.assign(job,{id:crypto.randomUUID(),link:input.link,mode:input.mode});}
   else return false;
   await save(job);
   await publish({phase:'busy',step:job.cancelled?'cancelling':'auth',mode:job.mode,name:job.name});
   const auth=await chrome.identity.getAuthToken({interactive});
   if(!auth?.token){await defer(job,'authError');return true;}
   job.token=auth.token;
-  const call=(action,payload={})=>operation(action,job.id,job.token,payload,{signal:AbortSignal.timeout(25000)});
+  const folder=isFolderLink(job.link);
+  const call=(action,payload={})=>(folder?folderOperation:operation)(action,job.id,job.token,payload,{signal:AbortSignal.timeout(25000)});
   job.call=call;
   let op=await call('prepare',{link:job.link,mode:job.mode});
   job.prepared=true;
+  if(folder){
+   if(job.mode!=='copy'){job.failure='folderCopyOnly';await terminal(job,{state:'failed'});return true;}
+   const started=Date.now();
+   while(true){
+    if(job.cancelled&&!op.cancelRequested&&!['succeeded','cancelled','failed'].includes(op.state))op=await call('cancel');
+    if(op.file?.name)job.name=op.file.name;
+    if(['succeeded','cancelled','failed'].includes(op.state)){
+     if(op.state==='failed')job.failure=op.reason||'generic';
+     await terminal(job,op);return true;
+    }
+    await publish({phase:'busy',step:job.cancelled?'cancelling':op.state==='scanning'?'folderScanning':op.state==='cleaning'?'cleanup':'folderCopying',mode:job.mode,name:job.name,loaded:op.state==='cleaning'?op.total-op.completed:op.completed,total:op.total});
+    if(Date.now()-started>240000||op.confirmed===false){await defer(job);return true;}
+    await sleep(1400);
+    op=await call('advance');
+   }
+  }
   if(job.cancelled)op=await call('cancel');
   else if(['pending','running'].includes(op.state)){
    await publish({phase:'busy',step:'working',mode:job.mode});
@@ -135,10 +154,11 @@ async function cancelCurrent(){
 chrome.alarms.onAlarm.addListener(a=>{if(a.name===alarm)void run();});
 chrome.runtime.onStartup.addListener(()=>{void run();});
 chrome.contextMenus.onClicked.addListener(async info=>{
- const mode=String(info.menuItemId).split('-').pop();
+ const action=String(info.menuItemId).split('-').pop();
+ const mode=action==='folder'?'copy':action;
  if(!modes.includes(mode))return;
  const link=info.linkUrl||info.pageUrl;
- try{parseLink(link);}catch{return;}
+ try{if(action==='folder'){if(!isFolderLink(link))return;}else parseLink(link);}catch{return;}
  const work=run({link,mode},true);
  await showProgress();
  await work;
