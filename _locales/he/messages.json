@@ -68,13 +68,40 @@
   "cleanup": {
     "message": "מנקה עותק זמני…"
   },
-  "cancelWarning": {
-    "message": "הבקשה בוטלה בדפדפן. ייתכן שהשרת השלים את ההעתקה."
-  },
   "cleanupFailed": {
     "message": "ההורדה הסתיימה, אך העותק הזמני נשאר בדרייב."
   },
   "busyError": {
     "message": "פעולה אחרת כבר מתבצעת."
+  },
+  "downloadSuccess": {
+    "message": "ההורדה הסתיימה בהצלחה"
+  },
+  "bothSuccess": {
+    "message": "הקובץ נשמר בדרייב והורד בהצלחה"
+  },
+  "cancelSuccess": {
+    "message": "הפעולה בוטלה והניקוי הושלם"
+  },
+  "cancelling": {
+    "message": "מבטל את הפעולה ומנקה עותקים…"
+  },
+  "recovering": {
+    "message": "בודק את מצב הפעולה מול Google Drive…"
+  },
+  "resume": {
+    "message": "בדיקה חוזרת"
+  },
+  "rightClickHint": {
+    "message": "להעתקה או להורדה, לחצו לחיצה ימנית על קישור לקובץ בדרייב."
+  },
+  "progressLabel": {
+    "message": "התקדמות הפעולה"
+  },
+  "tooLarge": {
+    "message": "גרסה זו תומכת בהורדות עד 25MB. העותק הזמני הוסר."
+  },
+  "downloadInterrupted": {
+    "message": "ההורדה נקטעה. העותק הזמני הוסר."
   }
 }
