@@ -6,7 +6,9 @@ const alarm='drive-operation-recovery';
 let current=null;
 const sleep=ms=>new Promise(resolve=>setTimeout(resolve,ms));
 const getSaved=async()=> (await chrome.storage.local.get('activeOperation')).activeOperation;
-const save=async job=>{const {id,link,mode,cancelled,stage,downloadId,name,failure}=job;await chrome.storage.local.set({activeOperation:{id,link,mode,cancelled,stage,downloadId:downloadId??null,name:name??null,failure:failure??null}});};
+let storageQueue=Promise.resolve();
+const queueStorage=fn=>{const next=storageQueue.then(fn);storageQueue=next.catch(console.error);return next;};
+const save=async job=>{if(job.terminal)return;const {id,link,mode,cancelled,stage,downloadId,name,failure}=job;await queueStorage(()=>chrome.storage.local.set({activeOperation:{id,link,mode,cancelled,stage,downloadId:downloadId??null,name:name??null,failure:failure??null}}));};
 async function publish(state){
  await chrome.storage.session.set({copyState:state});
  await chrome.action.setBadgeBackgroundColor({color:state.phase==='error'?'#b42318':state.phase==='success'?'#16803c':'#2563eb'});
@@ -37,6 +39,7 @@ async function waitDownload(job){
  await chrome.downloads.cancel(job.downloadId).catch(()=>{});
 }
 async function defer(job,step='recovering'){
+ if(job.terminal)return;
  await save(job);
  await publish({phase:'waiting',step:job.cancelled?'cancelling':step,mode:job.mode,name:job.name});
  await chrome.alarms.create(alarm,{delayInMinutes:1});
@@ -44,7 +47,7 @@ async function defer(job,step='recovering'){
 async function terminal(job,op){
  job.terminal=true;
  const phase=op.state==='succeeded'?'success':op.state==='cancelled'&&!job.failure?'cancelled':'error';
- await chrome.storage.local.remove('activeOperation');
+ await queueStorage(()=>chrome.storage.local.remove('activeOperation'));
  await chrome.alarms.clear(alarm);
  await publish({phase,mode:job.mode,id:phase==='success'&&job.mode!=='download'?op.file?.id:undefined,name:op.file?.name||job.name,reason:job.failure||'generic'});
 }
@@ -67,12 +70,12 @@ async function run(input=null,interactive=false,cancel=false){
   let op=await call('prepare',{link:job.link,mode:job.mode});
   job.prepared=true;
   if(job.cancelled)op=await call('cancel');
-  else if(op.state==='pending'){
+  else if(['pending','running'].includes(op.state)){
    await publish({phase:'busy',step:'working',mode:job.mode});
    op=await call('start');
   }
   if(job.cancelled)op=await call('cancel');
-  if(['running','uncertain','cancel_requested','cleaning','finalizing'].includes(op.state))op=await call('recover');
+  if(['dispatching','uncertain','cancel_requested','cleaning','finalizing'].includes(op.state))op=await call('recover');
   if(['succeeded','cancelled','failed'].includes(op.state)){await terminal(job,op);return true;}
   if(op.state!=='ready'){await defer(job);return true;}
   job.name=op.file?.name;
@@ -123,6 +126,7 @@ async function cancelCurrent(){
  if(job.terminal)return false;
  job.cancelled=true;job.controller.abort();
  if(job.id)await save(job);
+ if(job.terminal)return false;
  await publish({phase:'busy',step:'cancelling',mode:job.mode,name:job.name});
  if(job.downloadId)await chrome.downloads.cancel(job.downloadId).catch(()=>{});
  if(job.prepared&&job.call)await job.call('cancel').catch(console.error);
