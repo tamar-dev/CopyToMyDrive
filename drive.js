@@ -1,3 +1,12 @@
+export function parseFolderLink(value) {
+ const u=new URL(value.trim());
+ const id=u.pathname.match(/^\/drive\/(?:u\/\d+\/)?folders\/([\w-]+)\/?$/)?.[1];
+ if(u.protocol!=='https:'||u.hostname!=='drive.google.com'||u.username||u.password||u.port||!id||id.length>256)throw Error('Invalid folder link');
+ const key=u.searchParams.get('resourcekey');
+ if(key&&!/^[\w-]{1,256}$/.test(key))throw Error('Invalid resource key');
+ return {id,key};
+}
+export function isFolderLink(value){try{parseFolderLink(value);return true;}catch{return false;}}
 export function parseLink(value) {
  const u = new URL(value.trim());
  if(u.protocol !== 'https:' || !['drive.google.com','docs.google.com'].includes(u.hostname)) throw Error('Not a Google Drive link');
@@ -29,3 +38,5 @@ export async function invoke(action,payload,token,options={}) {
 export const copyFile=(link,token,options)=>invoke('drive-copy',{link},token,options);
 export const downloadFile=(fileId,token,options={})=>invoke('drive-download',{fileId,operationId:options.operationId},token,options);
 export const operation=(action,operationId,token,payload={},options)=>invoke('drive-operation',{...payload,action,operationId},token,options);
+
+export const folderOperation=(action,operationId,token,payload={},options)=>invoke('drive-folder',{...payload,action,operationId},token,options);
