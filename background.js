@@ -6,7 +6,7 @@ const alarm='drive-operation-recovery';
 let current=null;
 const sleep=ms=>new Promise(resolve=>setTimeout(resolve,ms));
 const getSaved=async()=> (await chrome.storage.local.get('activeOperation')).activeOperation;
-const save=async job=>{const {id,link,mode,cancelled,stage,downloadId,name}=job;await chrome.storage.local.set({activeOperation:{id,link,mode,cancelled,stage,downloadId:downloadId??null,name:name??null}});};
+const save=async job=>{const {id,link,mode,cancelled,stage,downloadId,name,failure}=job;await chrome.storage.local.set({activeOperation:{id,link,mode,cancelled,stage,downloadId:downloadId??null,name:name??null,failure:failure??null}});};
 async function publish(state){
  await chrome.storage.session.set({copyState:state});
  await chrome.action.setBadgeBackgroundColor({color:state.phase==='error'?'#b42318':state.phase==='success'?'#16803c':'#2563eb'});
@@ -42,7 +42,8 @@ async function defer(job,step='recovering'){
  await chrome.alarms.create(alarm,{delayInMinutes:1});
 }
 async function terminal(job,op){
- const phase=op.state==='succeeded'?'success':op.state==='cancelled'?'cancelled':'error';
+ job.terminal=true;
+ const phase=op.state==='succeeded'?'success':op.state==='cancelled'&&!job.failure?'cancelled':'error';
  await chrome.storage.local.remove('activeOperation');
  await chrome.alarms.clear(alarm);
  await publish({phase,mode:job.mode,id:phase==='success'&&job.mode!=='download'?op.file?.id:undefined,name:op.file?.name||job.name,reason:job.failure||'generic'});
@@ -119,6 +120,7 @@ async function run(input=null,interactive=false,cancel=false){
 async function cancelCurrent(){
  if(!current)return run(null,true,true);
  const job=current;
+ if(job.terminal)return false;
  job.cancelled=true;job.controller.abort();
  if(job.id)await save(job);
  await publish({phase:'busy',step:'cancelling',mode:job.mode,name:job.name});
