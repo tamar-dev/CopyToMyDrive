@@ -13,7 +13,7 @@ export async function invoke(action,payload,token,options={}) {
    if(!response.ok){let error;try{error=(await response.json()).error;}catch{}throw Error(error||'HTTP '+response.status);}
    const fileName=decodeURIComponent(response.headers.get('X-Download-Name')||'download');
    const max=25*1024*1024;
-   const total=Number(response.headers.get('Content-Length'))||0;
+   const total=Number(response.headers.get('X-Download-Size')||response.headers.get('Content-Length'))||0;
    if(total>max){await response.body?.cancel();throw Error('tooLarge');}
    const reader=response.body.getReader(),chunks=[];let loaded=0;
    try{
@@ -27,5 +27,5 @@ export async function invoke(action,payload,token,options={}) {
  return data;
 }
 export const copyFile=(link,token,options)=>invoke('drive-copy',{link},token,options);
-export const downloadFile=(fileId,token,options)=>invoke('drive-download',{fileId},token,options);
+export const downloadFile=(fileId,token,options={})=>invoke('drive-download',{fileId,operationId:options.operationId},token,options);
 export const operation=(action,operationId,token,payload={},options)=>invoke('drive-operation',{...payload,action,operationId},token,options);
