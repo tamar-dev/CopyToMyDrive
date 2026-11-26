@@ -1,4 +1,4 @@
-import {test} from 'node:test';import assert from 'node:assert/strict';import{parseLink,copyFile,operation,downloadFile}from './drive.js';
+import {test} from 'node:test';import assert from 'node:assert/strict';import{parseLink,copyFile,operation,downloadFile,parseFolderLink,isFolderLink,folderOperation}from './drive.js';
 test('links',()=>{assert.deepEqual(parseLink('https://drive.google.com/file/d/abc/view?resourcekey=xyz'),{id:'abc',key:'xyz'});assert.equal(parseLink('https://docs.google.com/document/d/abc/edit').id,'abc');assert.throws(()=>parseLink('https://evil.test/file/d/abc'));assert.throws(()=>parseLink('https://drive.google.com/drive/folders/abc'));});
 test('copy via cloud endpoint', async () => {
   const link = 'https://drive.google.com/open?id=abc&resourcekey=xyz';
@@ -34,4 +34,13 @@ test('download reports bytes and preserves filename',async()=>{
 });
 test('reject download larger than advertised cap before buffering',async()=>{
  await assert.rejects(downloadFile('abc','token',{request:async()=>new Response(new Uint8Array([1]),{headers:{'Content-Length':String(26*1024*1024)}})}),/tooLarge/);
+});
+
+test('folder URL validation and separate folder API',async()=>{
+ assert.deepEqual(parseFolderLink('https://drive.google.com/drive/u/1/folders/abc?resourcekey=xyz'),{id:'abc',key:'xyz'});
+ assert.equal(isFolderLink('https://drive.google.com/drive/folders/abc'),true);
+ assert.equal(isFolderLink('https://evil.example/drive/folders/abc'),false);
+ assert.equal(isFolderLink('https://drive.google.com/file/d/abc/view'),false);
+ const data=await folderOperation('advance','op','token',{}, {request:async(url,init)=>{assert.ok(url.endsWith('/drive-folder'));assert.deepEqual(JSON.parse(init.body),{action:'advance',operationId:'op'});return new Response(JSON.stringify({state:'copying'}));}});
+ assert.equal(data.state,'copying');
 });
